@@ -9,6 +9,8 @@
 #include "cmd_exit.h"
 #include "cmd_ls.h"
 #include "cmd_cd.h"
+#include "cmd_mkdir.h"
+#include "cmd_creat.h"
 
 // Print shell prompt
 static void print_prompt(FAT32 *fs) {
@@ -47,6 +49,10 @@ void run_shell(FAT32 *fs) {
                 status = cmd_cd(fs, tokens);
             } else if (strcmp(tokens->items[0], "ls") == 0) {
                 status = cmd_ls(fs, tokens);
+            } else if (strcmp(tokens->items[0], "mkdir") == 0) {
+                status = cmd_mkdir(fs, tokens);
+            } else if (strcmp(tokens->items[0], "creat") == 0) {
+                status = cmd_creat(fs, tokens);
             } else {
                 printf("Error: unsupported command.\n");
             }

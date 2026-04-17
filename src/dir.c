@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
@@ -108,7 +109,7 @@ static void make_fat_name(const char *input, char fat_name[11]) {
             continue;
         }
 
-        fat_name[j++] = input[i];
+        fat_name[j++] = toupper((unsigned char)input[i]);
     }
 }
 
@@ -222,3 +223,78 @@ void path_go_up(FAT32 *fs) {
         *last_slash = '\0';
     }
 }
+
+// Public wrapper so other files can use make_fat_name
+void dir_make_fat_name(const char *input, char fat_name[11]) {
+    make_fat_name(input, fat_name);
+}
+
+// Find a free 32-byte slot in the directory's cluster chain and write
+//   the new entry there. If no slot exists, allocate a new cluster and
+//  append it to the chain. Returns 0 on success, -1 on failure.
+int dir_add_entry(FAT32 *fs, uint32_t dir_cluster, const DirEntry *entry) {
+    uint32_t cluster = dir_cluster;
+    uint32_t entries_per_cluster;
+    uint32_t bytes_per_cluster;
+    uint32_t i;
+    DirEntry existing;
+    uint32_t prev_cluster;
+ 
+    entries_per_cluster =
+        (fs->bs.BPB_BytsPerSec * fs->bs.BPB_SecPerClus) / sizeof(DirEntry);
+    bytes_per_cluster =
+        fs->bs.BPB_BytsPerSec * fs->bs.BPB_SecPerClus;
+ 
+    while (1) {
+        fseek(fs->fp, cluster_to_offset(fs, cluster), SEEK_SET);
+ 
+        for (i = 0; i < entries_per_cluster; i++) {
+            fread(&existing, sizeof(DirEntry), 1, fs->fp);
+ 
+            // 0x00 = never used, 0xE5 = deleted — both are free slots
+            if (existing.DIR_Name[0] == 0x00 ||
+                existing.DIR_Name[0] == 0xE5) {
+ 
+                // Seek back to this slot and write the new entry
+                fseek(fs->fp,
+                      cluster_to_offset(fs, cluster) + (i * sizeof(DirEntry)),
+                      SEEK_SET);
+                fwrite(entry, sizeof(DirEntry), 1, fs->fp);
+                return 0;
+            }
+        }
+ 
+        // Move to next cluster in chain
+        prev_cluster = cluster;
+        cluster = fat32_next_cluster(fs, cluster);
+ 
+        if (fat32_is_eoc(cluster)) {
+            // No space left — allocate a new cluster for the directory
+            uint32_t new_cluster = fat32_find_free_cluster(fs);
+            uint8_t *zeros;
+ 
+            if (new_cluster == 0) {
+                return -1;  // disk full
+            }
+ 
+            // Link previous last cluster -> new cluster
+            fat32_write_fat_entry(fs, prev_cluster, new_cluster);
+
+            // Mark new cluster as end-of-chain
+            fat32_write_fat_entry(fs, new_cluster, 0x0FFFFFF8);
+ 
+            // Zero out the new cluster
+            zeros = calloc(bytes_per_cluster, 1);
+            if (zeros == NULL) {
+                return -1;
+            }
+            fseek(fs->fp, cluster_to_offset(fs, new_cluster), SEEK_SET);
+            fwrite(zeros, 1, bytes_per_cluster, fs->fp);
+            free(zeros);
+ 
+            // Write the entry at the start of the new cluster
+            fseek(fs->fp, cluster_to_offset(fs, new_cluster), SEEK_SET);
+            fwrite(entry, sizeof(DirEntry), 1, fs->fp);
+            return 0;
+        }
+    }
