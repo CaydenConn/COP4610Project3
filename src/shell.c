@@ -12,6 +12,14 @@
 #include "cmd_mkdir.h"
 #include "cmd_creat.h"
 
+#include "cmd_open.h"
+#include "cmd_close.h"
+#include "cmd_lsof.h"
+#include "cmd_lseek.h"
+#include "cmd_read.h"
+#include "cmd_write.h"
+#include "cmd_mv.h"
+
 // Print shell prompt
 static void print_prompt(FAT32 *fs) {
     printf("[%s]%s> ", fs->image_name, fs->current_path);
@@ -53,6 +61,20 @@ void run_shell(FAT32 *fs) {
                 status = cmd_mkdir(fs, tokens);
             } else if (strcmp(tokens->items[0], "creat") == 0) {
                 status = cmd_creat(fs, tokens);
+            } else if (strcmp(tokens->items[0], "open") == 0) {
+                status = cmd_open(fs, tokens);
+            } else if (strcmp(tokens->items[0], "close") == 0) {
+                status = cmd_close(fs, tokens);
+            } else if (strcmp(tokens->items[0], "lsof") == 0) {
+                status = cmd_lsof(fs, tokens);
+            } else if (strcmp(tokens->items[0], "lseek") == 0) {
+                status = cmd_lseek(fs, tokens);
+            } else if (strcmp(tokens->items[0], "read") == 0) {
+                status = cmd_read(fs, tokens);
+            } else if (strcmp(tokens->items[0], "write") == 0) {
+                status = cmd_write(fs, tokens);
+            } else if (strcmp(tokens->items[0], "mv") == 0) {
+                status = cmd_mv(fs, tokens);
             } else {
                 printf("Error: unsupported command.\n");
             }

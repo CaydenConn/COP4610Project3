@@ -89,14 +89,23 @@ void dir_entry_name_to_string(const DirEntry *entry, char *out) {
   out[pos] = '\0';
 }
 
-// Looks for a name inside a directory
 static void make_fat_name(const char *input, char fat_name[11]) {
   int i;
   int j = 0;
 
-  // Fill spaces
   for (i = 0; i < 11; i++) {
     fat_name[i] = ' ';
+  }
+
+  // Handle special dot directories explicitly
+  if (strcmp(input, ".") == 0) {
+      fat_name[0] = '.';
+      return;
+  }
+  if (strcmp(input, "..") == 0) {
+      fat_name[0] = '.';
+      fat_name[1] = '.';
+      return;
   }
 
   for (i = 0; input[i] != '\0'; i++) {
@@ -125,7 +134,7 @@ int dir_find_entry(FAT32 *fs, uint32_t dir_cluster, const char *name,
       (fs->bs.BPB_BytsPerSec * fs->bs.BPB_SecPerClus) / sizeof(DirEntry);
 
   while (1) {
-    fseek(fs->fp, cluster_to_offset(fs, cluster), SEEK_SET);
+    fseek(fs->fp, cluster_to_offset(fs, cluster), SEEK_SET); 
 
     for (i = 0; i < entries_per_cluster; i++) {
       fread(&entry, sizeof(DirEntry), 1, fs->fp);
@@ -170,7 +179,7 @@ void dir_list(FAT32 *fs, uint32_t dir_cluster) {
       (fs->bs.BPB_BytsPerSec * fs->bs.BPB_SecPerClus) / sizeof(DirEntry);
 
   while (1) {
-    fseek(fs->fp, cluster_to_offset(fs, cluster), SEEK_SET);
+    fseek(fs->fp, cluster_to_offset(fs, cluster), SEEK_SET); 
 
     for (i = 0; i < entries_per_cluster; i++) {
       fread(&entry, sizeof(DirEntry), 1, fs->fp);
@@ -242,7 +251,7 @@ int dir_add_entry(FAT32 *fs, uint32_t dir_cluster, const DirEntry *entry) {
   bytes_per_cluster = fs->bs.BPB_BytsPerSec * fs->bs.BPB_SecPerClus;
 
   while (1) {
-    fseek(fs->fp, cluster_to_offset(fs, cluster), SEEK_SET);
+    fseek(fs->fp, cluster_to_offset(fs, cluster), SEEK_SET); 
 
     for (i = 0; i < entries_per_cluster; i++) {
       fread(&existing, sizeof(DirEntry), 1, fs->fp);
@@ -292,4 +301,87 @@ int dir_add_entry(FAT32 *fs, uint32_t dir_cluster, const DirEntry *entry) {
       return 0;
     }
   }
+}
+
+int dir_update_entry(FAT32 *fs, uint32_t dir_cluster, const char *name, const DirEntry *entry) {
+  DirEntry existing;
+  uint32_t cluster;
+  uint32_t entries_per_cluster;
+  uint32_t i;
+  char fat_name[11];
+  
+  dir_make_fat_name(name, fat_name);
+  
+  cluster = dir_cluster;
+  entries_per_cluster = (fs->bs.BPB_BytsPerSec * fs->bs.BPB_SecPerClus) / sizeof(DirEntry);
+  
+  while (1) {
+    fseek(fs->fp, cluster_to_offset(fs, cluster), SEEK_SET); 
+    
+    for (i = 0; i < entries_per_cluster; i++) {
+      fread(&existing, sizeof(DirEntry), 1, fs->fp);
+      
+      if (existing.DIR_Name[0] == 0x00) {
+        return -1; // Not found
+      }
+      
+      if (dir_is_unused(&existing) || dir_is_lfn(&existing)) {
+        continue;
+      }
+      
+      if (memcmp(existing.DIR_Name, fat_name, 11) == 0) {
+        fseek(fs->fp, cluster_to_offset(fs, cluster) + (i * sizeof(DirEntry)), SEEK_SET);
+        fwrite(entry, sizeof(DirEntry), 1, fs->fp);
+        return 0; 
+      }
+    }
+    
+    cluster = fat32_next_cluster(fs, cluster);
+    if (fat32_is_eoc(cluster)) {
+      break;
+    }
+  }
+  return -1;
+}
+
+int dir_delete_entry(FAT32 *fs, uint32_t dir_cluster, const char *name) {
+  DirEntry existing;
+  uint32_t cluster;
+  uint32_t entries_per_cluster;
+  uint32_t i;
+  char fat_name[11];
+  
+  dir_make_fat_name(name, fat_name);
+  
+  cluster = dir_cluster;
+  entries_per_cluster = (fs->bs.BPB_BytsPerSec * fs->bs.BPB_SecPerClus) / sizeof(DirEntry);
+  
+  while (1) {
+    fseek(fs->fp, cluster_to_offset(fs, cluster), SEEK_SET); 
+    
+    for (i = 0; i < entries_per_cluster; i++) {
+      fread(&existing, sizeof(DirEntry), 1, fs->fp);
+      
+      if (existing.DIR_Name[0] == 0x00) {
+        return -1; 
+      }
+      
+      if (dir_is_unused(&existing) || dir_is_lfn(&existing)) {
+        continue;
+      }
+      
+      if (memcmp(existing.DIR_Name, fat_name, 11) == 0) {
+        existing.DIR_Name[0] = 0xE5; 
+        fseek(fs->fp, cluster_to_offset(fs, cluster) + (i * sizeof(DirEntry)), SEEK_SET);
+        fwrite(&existing, sizeof(DirEntry), 1, fs->fp);
+        return 0; 
+      }
+    }
+    
+    cluster = fat32_next_cluster(fs, cluster);
+    if (fat32_is_eoc(cluster)) {
+      break;
+    }
+  }
+  return -1;
 }
