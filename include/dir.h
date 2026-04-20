@@ -42,8 +42,10 @@ void dir_list(FAT32 *fs, uint32_t dir_cluster);
 void path_go_into(FAT32 *fs, const char *name);
 void path_go_up(FAT32 *fs);
 
-// Convert user input name to FAT32 8.3 format
 void dir_make_fat_name(const char *input, char fat_name[11]);
 
-// Add a 32-byte directory entry to a directory's cluster chain (returns 0 on success, -1 on failure)
 int dir_add_entry(FAT32 *fs, uint32_t dir_cluster, const DirEntry *entry);
+
+int dir_update_entry(FAT32 *fs, uint32_t dir_cluster, const char *name, const DirEntry *entry);
+
+int dir_delete_entry(FAT32 *fs, uint32_t dir_cluster, const char *name);

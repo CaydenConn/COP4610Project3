@@ -97,14 +97,35 @@ void fat32_print_info(FAT32 *fs) {
 }
 
 uint32_t fat32_find_free_cluster(FAT32 *fs) {
-  (void)fs;
-  return 0; // Stub returning full/no free space
+  uint32_t total = fat32_total_clusters(fs);
+  uint32_t fat_start = fs->bs.BPB_RsvdSecCnt * fs->bs.BPB_BytsPerSec;
+  uint32_t value;
+
+  for (uint32_t i = 2; i < total + 2; i++) {
+    uint32_t fat_offset = i * 4;
+    fseek(fs->fp, fat_start + fat_offset, SEEK_SET);
+    fread(&value, sizeof(uint32_t), 1, fs->fp);
+    value &= 0x0FFFFFFF;
+
+    if (value == 0) {
+      return i;
+    }
+  }
+  return 0; // No free space
 }
 
 void fat32_write_fat_entry(FAT32 *fs, uint32_t cluster, uint32_t value) {
-  (void)fs;
-  (void)cluster;
-  (void)value;
-  // Stub doing nothing
+  uint32_t fat_start = fs->bs.BPB_RsvdSecCnt * fs->bs.BPB_BytsPerSec;
+  uint32_t fat_offset = cluster * 4;
+  uint32_t existing;
+
+  for (int i = 0; i < fs->bs.BPB_NumFATs; i++) {
+     uint32_t current_fat_start = fat_start + (i * fat32_fat_size(fs) * fs->bs.BPB_BytsPerSec);
+     fseek(fs->fp, current_fat_start + fat_offset, SEEK_SET);
+     fread(&existing, sizeof(uint32_t), 1, fs->fp);
+     existing = (existing & 0xF0000000) | (value & 0x0FFFFFFF);
+     fseek(fs->fp, current_fat_start + fat_offset, SEEK_SET);
+     fwrite(&existing, sizeof(uint32_t), 1, fs->fp);
+  }
 }
 

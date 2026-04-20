@@ -34,6 +34,22 @@ typedef struct __attribute__((packed)) {
     uint8_t  BS_FilSysType[8];
 } FAT32BootSector;
 
+#define MODE_R  1
+#define MODE_W  2
+#define MODE_RW 3
+#define MAX_OPEN_FILES 10
+
+typedef struct {
+    int is_open;
+    char name[256];
+    char path[256];
+    int mode; // MODE_R, MODE_W, MODE_RW
+    uint32_t offset;
+    uint32_t first_cluster;
+    uint32_t file_size;
+    uint32_t dir_cluster; // The starting cluster of the directory containing this file's DirEntry
+} OpenFile;
+
 // Keeps track of the opened image and shell state
 typedef struct {
     FILE *fp;
@@ -41,6 +57,7 @@ typedef struct {
     char image_name[256];
     char current_path[256];
     uint32_t current_cluster;
+    OpenFile open_files[MAX_OPEN_FILES];
 } FAT32;
 
 // Open the image and read the boot sector
