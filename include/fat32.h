@@ -69,3 +69,9 @@ uint32_t fat32_entries_per_fat(FAT32 *fs);
 
 // Print the values needed for the info command
 void fat32_print_info(FAT32 *fs);
+
+// Scan FAT for the first free cluster, returns cluster number or 0 if none
+uint32_t fat32_find_free_cluster(FAT32 *fs);
+
+// Write a value to a FAT entry for a given cluster (updates all FAT copies)
+void fat32_write_fat_entry(FAT32 *fs, uint32_t cluster, uint32_t value);
