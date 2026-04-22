@@ -6,7 +6,6 @@
 #include "dir.h"
 
 int cmd_mkdir(FAT32 *fs, tokenlist *tokens) {
-    DirEntry entry;
     uint32_t new_cluster;
     uint32_t offset;
     uint32_t bytes_per_cluster;
@@ -15,7 +14,6 @@ int cmd_mkdir(FAT32 *fs, tokenlist *tokens) {
     DirEntry dotdot;
     DirEntry new_entry;
     uint32_t parent_cluster;
-    char fat_name[11];
 
     // mkdir needs exactly one argument
     if (tokens->size != 2) {
@@ -52,7 +50,7 @@ int cmd_mkdir(FAT32 *fs, tokenlist *tokens) {
     fwrite(zeros, 1, bytes_per_cluster, fs->fp);
     free(zeros);
 
-    // Write "." entry — points to itself
+    // Write "." entry - points to itself
     memset(&dot, 0, sizeof(DirEntry));
     dot.DIR_Name[0] = '.';
     memset(&dot.DIR_Name[1], ' ', 10);
@@ -64,7 +62,7 @@ int cmd_mkdir(FAT32 *fs, tokenlist *tokens) {
     fseek(fs->fp, offset, SEEK_SET);
     fwrite(&dot, sizeof(DirEntry), 1, fs->fp);
 
-    // Write ".." entry — points to parent (0 if parent is root)
+    // Write ".." entry - points to parent (0 if parent is root)
     memset(&dotdot, 0, sizeof(DirEntry));
     dotdot.DIR_Name[0] = '.';
     dotdot.DIR_Name[1] = '.';

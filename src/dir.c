@@ -114,7 +114,9 @@ static void make_fat_name(const char *input, char fat_name[11]) {
       continue;
     }
 
-    fat_name[j++] = toupper((unsigned char)input[i]);
+    if(j < 11){
+      fat_name[j++] = toupper((unsigned char)input[i]);
+    }
   }
 }
 

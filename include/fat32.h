@@ -92,3 +92,6 @@ uint32_t fat32_find_free_cluster(FAT32 *fs);
 
 // Write a value to a FAT entry for a given cluster (updates all FAT copies)
 void fat32_write_fat_entry(FAT32 *fs, uint32_t cluster, uint32_t value);
+
+// Free an entire cluster chain starting at the given cluster
+void fat32_free_cluster_chain(FAT32 *fs, uint32_t start_cluster);

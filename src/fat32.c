@@ -1,6 +1,7 @@
 #include "fat32.h"
 #include <stdio.h>
 #include <string.h>
+#include "dir.h"
 
 int fat32_open(FAT32 *fs, const char *filename) {
   // Clear the struct first
@@ -129,3 +130,21 @@ void fat32_write_fat_entry(FAT32 *fs, uint32_t cluster, uint32_t value) {
   }
 }
 
+// Frees each cluster in a cluster chain by writing 0x00000000 to its FAT entry
+void fat32_free_cluster_chain(FAT32 *fs, uint32_t start_cluster) {
+  uint32_t current = start_cluster;
+
+  if (current < 2) {
+    return; // invalid cluster
+  }
+
+  while (1) {
+    uint32_t next = fat32_next_cluster(fs, current);
+    fat32_write_fat_entry(fs, current, 0x00000000);
+
+    if (fat32_is_eoc(next)) {
+      break;
+    }
+    current = next;
+  }
+}

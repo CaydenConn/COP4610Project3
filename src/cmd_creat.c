@@ -22,7 +22,7 @@ int cmd_creat(FAT32 *fs, tokenlist *tokens) {
     // Build a file entry: cluster 0, size 0, ATTR_ARCHIVE
     memset(&new_entry, 0, sizeof(DirEntry));
     dir_make_fat_name(tokens->items[1], new_entry.DIR_Name);
-    new_entry.DIR_Attr = 0x20;  /* ATTR_ARCHIVE */
+    new_entry.DIR_Attr = 0x20;  // ATTR_ARCHIVE
     new_entry.DIR_FstClusHI = 0;
     new_entry.DIR_FstClusLO = 0;
     new_entry.DIR_FileSize = 0;

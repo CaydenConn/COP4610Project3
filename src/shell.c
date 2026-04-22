@@ -19,6 +19,8 @@
 #include "cmd_read.h"
 #include "cmd_write.h"
 #include "cmd_mv.h"
+#include "cmd_rm.h"
+#include "cmd_rmdir.h"
 
 // Print shell prompt
 static void print_prompt(FAT32 *fs) {
@@ -75,6 +77,10 @@ void run_shell(FAT32 *fs) {
                 status = cmd_write(fs, tokens);
             } else if (strcmp(tokens->items[0], "mv") == 0) {
                 status = cmd_mv(fs, tokens);
+            } else if (strcmp(tokens->items[0], "rm") == 0) {
+                status = cmd_rm(fs, tokens);
+            } else if (strcmp(tokens->items[0], "rmdir") == 0) {
+                status = cmd_rmdir(fs, tokens);
             } else {
                 printf("Error: unsupported command.\n");
             }
