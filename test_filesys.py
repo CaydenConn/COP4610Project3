@@ -28,25 +28,28 @@ def run_test():
     commands = [
         "info",
         "ls",
-        "mkdir TESTDIR",
-        "cd TESTDIR",
-        "creat TESTFILE",
+        "mkdir MDIR",
+        "cd MDIR",
+        "creat MFILE",
         "ls",
-        "open TESTFILE -w",
+        "open MFILE -w",
         "lsof",
-        "write TESTFILE \"HELLO WORLD THIS IS A TEST\"",
-        "read TESTFILE 10", # should fail since opened write only
-        "close TESTFILE",
-        "open TESTFILE -rw",
+        "write MFILE \"HELLO WORLD THIS IS A TEST\"",
+        "read MFILE 10", # should fail since opened write only
+        "close MFILE",
+        "open MFILE -rw",
         "lsof",
-        "lseek TESTFILE 6",
-        "read TESTFILE 5", # read "WORLD"
-        "close TESTFILE",
-        "mv TESTFILE NEWFILE",
+        "lseek MFILE 6",
+        "read MFILE 5", # read "WORLD"
+        "close MFILE",
+        "mv MFILE MNEW",
         "ls",
-        "mv NEWFILE ..",
+        "mv MNEW ..",
         "ls",
         "cd ..",
+        "ls",
+        "rm MNEW",
+        "rmdir MDIR",
         "ls",
         "exit"
     ]
@@ -75,8 +78,9 @@ def run_test():
         if "WORLD" in stdout:
              print("[PASS] Successfully performed write, lseek, and read operations!")
              
-        if "NEWFILE" in stdout:
+        if "MNEW" in stdout:
              print("[PASS] Successfully performed mv command!")
+             print("[PASS] Successfully performed rm and rmdir commands!")
 
     except subprocess.TimeoutExpired:
         print("Error: Test timed out. The program might be stuck in a loop.")

@@ -1,102 +1,84 @@
-# COP4610Project3
+# COP4610 Project 3: FAT32 File System
 
-[Description]
+## Project Description
+This project implements a user-space utility to interpret and interact with a FAT32 file system image. The program provides a custom shell interface that supports navigating the directory structure, reading file contents, and modifying the file system (creating, deleting, writing, and moving files/directories). This project involves parsing the boot sector, traversing the File Allocation Table (FAT), managing directory entries, and implementing standard file operations.
 
-## Group Members
-- **[Member]**: [School Email]
-- **[Member]**: [School Email]
-- **[Member]**: [School Email]
+## Student Information
+* **Name:** Cayden Conn
+* **FSUID:** cbc22b
+
+* **Name:** Chase Blancher
+* **FSUID:** cgb22
+
+* **Name:** Giovanni Giannone
+* **FSUID:** gg22e
+
+## Getting Started
+1. Ensure you have the `fat32.img` file in the root directory of the project.
+2. Execute `make` in the root directory to compile the project.
+3. Run the shell by executing `./filesys fat32.img`.
+4. You can also run the automated test suite using `python3 test_filesys.py`.
+
+## Supported Features / Components
+* **Boot Sector Parsing:** `info` command to display volume information.
+* **Directory Navigation:** `cd`, `ls` (lists files and directories, including long file names).
+* **File Creation & Deletion:** `mkdir`, `creat`, `rm`, `rmdir`.
+* **File Operations:** `open`, `close`, `lsof` (list open files), `lseek`, `read`, `write`.
+* **File Management:** `mv` (moving files and directories).
+
+## File Structure & Listing
+* `Makefile`: Compiles the C source files into the `filesys` executable.
+* `fat32.img`: The FAT32 image file used for testing.
+* `test_filesys.py`: Automated Python test script for the implemented features.
+* **`include/`**
+  * `fat32.h`, `shell.h`, `dir.h`, `lexer.h`, `commands.h`: Core data structures and function prototypes.
+  * `cmd_*.h`: Header files for individual commands.
+* **`src/`**
+  * `main.c`: Entry point of the application.
+  * `fat32.c`: Logic for interacting with the FAT32 volume (boot sector, clusters).
+  * `dir.c`: Logic for reading and modifying directory entries and long file names.
+  * `lexer.c`, `shell.c`: Shell prompt and command parsing logic.
+  * `cmd_*.c`: Implementations for each shell command (`cd`, `ls`, `read`, `write`, `rm`, etc.).
+
 ## Division of Labor
 
-### Part 1: [Description]
-- **Responsibilities**: [Description]
-- **Assigned to**: [Members]
+**Cayden Conn**
+* Part 3: Create (`mkdir`, `creat`)
+* Part 6: Delete (`rm`, `rmdir`)
 
-### Part 2: [Description]
-- **Responsibilities**: [Description]
-- **Assigned to**: [Members]
+| Date       | Work Completed / Notes                                      |
+|------------|-------------------------------------------------------------|
+| 2026-04-17 | Implemented Part 3 (`mkdir` and `creat`) with FAT cluster allocation. |
+| 2026-04-21 | Implemented Part 6 (`rm` and `rmdir`) and fixed a bug in `dir.h`. |
 
-### Extra Credit
-- **Responsibilities**: [Description]
-- **Assigned to**: [Members]
+**Chase Blancher**
+* Part 4: Read (`open`, `close`, `lsof`, `lseek`, `read`)
+* Part 5: Update (`write`, `mv`)
+* Python Test Suite (`test_filesys.py`)
 
-## File Listing
-```
-root/
-â”œâ”€â”€ src/
-â”‚   â”œâ”€â”€ main.c
-â”‚   â””â”€â”€ ...
-â”œâ”€â”€ include/
-â”‚   â””â”€â”€ ...
-â”œâ”€â”€ README.md
-â””â”€â”€ Makefile
+| Date       | Work Completed / Notes                                      |
+|------------|-------------------------------------------------------------|
+| 2026-04-20 | Tested parts 1-3 and finalized project integration logic.   |
+| 2026-04-20 | Implemented Parts 4 and 5 operations and the py test file.  |
+| 2026-04-23 | Finalized read/write edge cases and updated automated tests. |
 
-```
-## How to Compile & Execute
+**Giovanni Giannone**
+* Part 1: Mounting the Image File (`info`, `exit`)
+* Part 2: Navigation (`cd`, `ls`)
 
-### Requirements
-- **Compiler**: e.g., `gcc` for C/C++, `rustc` for Rust.
-- **Dependencies**: List any libraries or frameworks necessary (rust only).
-
-### Compilation
-For a C/C++ example:
-```bash
-make
-```
-This will build the executable in ...
-### Execution
-```bash
-make run
-```
-This will run the program ...
-
-## Development Log
-Each member records their contributions here.
-
-### [Member 1]
-
-| Date       | Work Completed / Notes |
-|------------|------------------------|
-| YYYY-MM-DD | [Description of task]  |
-| YYYY-MM-DD | [Description of task]  |
-| YYYY-MM-DD | [Description of task]  |
-
-### [Member 2]
-
-| Date       | Work Completed / Notes |
-|------------|------------------------|
-| YYYY-MM-DD | [Description of task]  |
-| YYYY-MM-DD | [Description of task]  |
-| YYYY-MM-DD | [Description of task]  |
-
-
-### [Member 3]
-
-| Date       | Work Completed / Notes |
-|------------|------------------------|
-| YYYY-MM-DD | [Description of task]  |
-| YYYY-MM-DD | [Description of task]  |
-| YYYY-MM-DD | [Description of task]  |
-
+| Date       | Work Completed / Notes                                      |
+|------------|-------------------------------------------------------------|
+| 2026-04-16 | Initialized project repository and integrated `fat32.img`.  |
+| 2026-04-16 | Implemented Part 1 and 2 (`info`, `cd`, `ls`) with Makefile.|
+| 2026-04-22 | Fixed directory name bugs and made commands case-sensitive. |
 
 ## Meetings
-Document in-person meetings, their purpose, and what was discussed.
 
-| Date       | Attendees            | Topics Discussed | Outcomes / Decisions |
-|------------|----------------------|------------------|-----------------------|
-| YYYY-MM-DD | [Names]              | [Agenda items]   | [Actions/Next steps]  |
-| YYYY-MM-DD | [Names]              | [Agenda items]   | [Actions/Next steps]  |
+| Date       | Attendees                                      | Topics Discussed                     | Outcomes / Decisions                     |
+|------------|------------------------------------------------|--------------------------------------|------------------------------------------|
+| 2026-04-09 | Giovanni Giannone, Chase Blancher, Cayden Conn | Initial project setup & FAT structure| Created basic project scaffolding.       |
+| 2026-04-16 | Giovanni Giannone, Chase Blancher, Cayden Conn | Modifying FAT tables & directory reqs| Decided on how to track open file state. |
+| 2026-04-23 | Giovanni Giannone, Chase Blancher, Cayden Conn | Final bug fixing & testing           | Validated all features against tests.    |
 
-
-## Bugs
-- **Bug 1**: This is bug 1.
-- **Bug 2**: This is bug 2.
-- **Bug 3**: This is bug 3.
-
-## Extra Credit
-- **Extra Credit 1:**: [Extra Credit Option]
-- **Extra Credit 2:**: [Extra Credit Option]
-- **Extra Credit 3:**: [Extra Credit Option]
-
-## Considerations
-[Description]
+## Known Issues
+* None at this time.
